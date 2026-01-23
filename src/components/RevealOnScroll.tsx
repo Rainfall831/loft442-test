@@ -1,43 +1,46 @@
 "use client";
 
 import { useEffect } from "react";
+import { usePathname } from "next/navigation";
 
-type Props = {
-  /** optional: when you want to disable on certain pages */
-  enabled?: boolean;
-};
+const REVEAL_SELECTOR = ".reveal";
 
-export default function RevealOnScroll({ enabled = true }: Props) {
+export default function RevealOnScroll() {
+  const pathname = usePathname();
+
   useEffect(() => {
-    if (!enabled) return;
+    const elements = Array.from(
+      document.querySelectorAll<HTMLElement>(REVEAL_SELECTOR)
+    );
 
-    const nodes = Array.from(document.querySelectorAll<HTMLElement>(".reveal"));
-    if (!nodes.length) return;
-
-    const reduceMotion =
-      typeof window !== "undefined" &&
-      window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
-
-    if (reduceMotion) {
-      nodes.forEach((el) => el.classList.add("is-visible"));
+    if (elements.length === 0) {
       return;
     }
 
-    const io = new IntersectionObserver(
+    const observer = new IntersectionObserver(
       (entries) => {
-        for (const entry of entries) {
-          if (entry.isIntersecting) {
-            (entry.target as HTMLElement).classList.add("is-visible");
-            io.unobserve(entry.target);
+        entries.forEach((entry) => {
+          if (!entry.isIntersecting) {
+            return;
           }
-        }
+
+          const element = entry.target as HTMLElement;
+          element.classList.add("is-visible");
+          observer.unobserve(element);
+        });
       },
-      { root: null, threshold: 0.15, rootMargin: "0px 0px -10% 0px" }
+      { threshold: 0.25 }
     );
 
-    nodes.forEach((el) => io.observe(el));
-    return () => io.disconnect();
-  }, [enabled]);
+    elements.forEach((element) => {
+      if (element.classList.contains("is-visible")) {
+        return;
+      }
+      observer.observe(element);
+    });
+
+    return () => observer.disconnect();
+  }, [pathname]);
 
   return null;
 }
