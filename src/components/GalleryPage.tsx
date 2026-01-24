@@ -322,17 +322,21 @@ export default function GalleryPage() {
               onTouchEnd={handleTouchEnd}
             >
               <div
-                className="relative inline-flex w-fit max-w-[92vw] flex-col rounded-sm border border-white/10 bg-black/60 p-4 shadow-[0_30px_90px_rgba(0,0,0,0.7)] backdrop-blur sm:p-5"
+                className="relative flex w-[92vw] max-w-[900px] max-h-[90vh] flex-col min-h-0 rounded-sm border border-white/10 bg-black/60 p-4 shadow-[0_30px_90px_rgba(0,0,0,0.7)] backdrop-blur sm:p-5"
                 onClick={(event) => event.stopPropagation()}
               >
-                <div className="relative w-[92vw] max-w-[900px] h-[62vh] overflow-hidden rounded-2xl bg-black/40 sm:h-[70vh]">
-                  <div className="absolute inset-0 grid place-items-center p-3 sm:p-4">
-                    <img
-                      src={activeItem.src}
-                      alt={activeItem.alt ?? ""}
-                      className="block max-h-full max-w-full h-auto w-auto object-contain object-center"
-                      draggable={false}
-                    />
+                <div className="relative flex-1 min-h-0 overflow-hidden rounded-2xl bg-black/40">
+                  <div className="absolute inset-0 p-3 sm:p-4">
+                    <div className="relative h-full w-full">
+                      <Image
+                        src={activeItem.src}
+                        alt={activeItem.alt ?? ""}
+                        fill
+                        sizes="(max-width: 640px) 92vw, 900px"
+                        className="object-contain object-center"
+                        priority
+                      />
+                    </div>
                   </div>
                   <div className="pointer-events-none absolute inset-0 z-10 rounded-2xl bg-gradient-to-t from-black/40 via-transparent to-transparent" />
                   <button
