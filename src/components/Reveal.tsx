@@ -28,7 +28,9 @@ export default function Reveal({
 
   useEffect(() => {
     const node = ref.current;
-    if (!node) return;
+    if (!node) {
+      return;
+    }
 
     const observer = new IntersectionObserver(
       ([entry]) => {

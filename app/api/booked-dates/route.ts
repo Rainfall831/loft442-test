@@ -10,10 +10,20 @@ export async function GET(req: Request) {
   let range: { from?: string; to?: string } = {};
 
   if (month) {
-    const [y, m] = month.split("-");
-    const last = new Date(Number(y), Number(m), 0).getDate();
-    range.from = `${y}-${m}-01`;
-    range.to = `${y}-${m}-${String(last).padStart(2, "0")}`;
+    const [y, mRaw] = month.split("-");
+    const yearNumber = Number(y);
+    const monthNumber = Number(mRaw);
+    if (
+      !Number.isNaN(yearNumber) &&
+      !Number.isNaN(monthNumber) &&
+      monthNumber >= 1 &&
+      monthNumber <= 12
+    ) {
+      const m = String(monthNumber).padStart(2, "0");
+      const last = new Date(yearNumber, monthNumber, 0).getDate();
+      range.from = `${yearNumber}-${m}-01`;
+      range.to = `${yearNumber}-${m}-${String(last).padStart(2, "0")}`;
+    }
   }
 
   try {

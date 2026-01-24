@@ -1,10 +1,13 @@
+"use client";
+
 /**
- * Sanity Studio config mounted at /app/studio/[[...tool]]/page.tsx
+ * This configuration is used for the Sanity Studio that's mounted on the
+ * `/app/studio/[[...tool]]/page.tsx` route.
  */
 
-import { defineConfig } from "sanity";
-import { deskTool } from "sanity/desk";
 import { visionTool } from "@sanity/vision";
+import { defineConfig } from "sanity";
+import { structureTool } from "sanity/structure";
 
 import { apiVersion, dataset, projectId } from "./sanity/env";
 import { schema } from "./sanity/schemaTypes";
@@ -14,17 +17,9 @@ export default defineConfig({
   basePath: "/studio",
   projectId,
   dataset,
-  apiVersion,
-
-  schema: {
-    ...schema,
-    // Only allow the Availability singleton
-    templates: (templates) =>
-      templates.filter((t) => t.schemaType === "availability"),
-  },
-
+  schema,
   plugins: [
-    deskTool({ structure }),
+    structureTool({ structure }),
     visionTool({ defaultApiVersion: apiVersion }),
   ],
 });

@@ -1,4 +1,6 @@
-export const structure = (S: any) =>
+import type { StructureResolver } from "sanity/structure";
+
+export const structure: StructureResolver = (S) =>
   S.list()
     .title("Loft442 Admin")
     .items([

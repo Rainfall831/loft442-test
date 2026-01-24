@@ -41,79 +41,25 @@ const filterCategories: GalleryCategory[] = ["All", ...categories];
 
 const galleryItems: GalleryItem[] = [
   {
-    id: 2,
-    src: "/images/loft-44-image.png",
-    alt: "Open floor plan with lounge seating",
-    category: "Private Events",
-  },
-  {
-    id: 4,
-    src: "/images/gallery2.jpg",
-    alt: "Warm uplighting across the main hall",
-    category: "Birthdays",
-  },
-  {
-    id: 5,
-    src: "/images/gallery3.jpg",
-    alt: "Modern lounge vignette with gold accents",
-    category: "Private Events",
-  },
-  {
-    id: 6,
-    src: "/images/baby-shower2%20image.png",
-    alt: "Loft 442 entryway with soft glow",
-    category: "Baby Shower",
-  },
-  {
-    id: 7,
-    src: "/images/gallery2.jpg",
-    alt: "Intimate birthday setup with neon accents",
-    category: "Birthdays",
-  },
-  {
-    id: 9,
-    src: "/images/loft-44-image.png",
-    alt: "Kids party layout with playful seating",
-    category: "Kids Parties",
-  },
-  {
-    id: 10,
-    src: "/images/gallery1.jpg",
-    alt: "Private dinner configuration with candlelight",
-    category: "Private Events",
-  },
-  {
-    id: 11,
-    src: "/images/hero.jpg",
-    alt: "Soft pastel baby shower tablescape",
-    category: "Baby Shower",
-  },
-  {
-    id: 12,
-    src: "/images/gallery3.jpg",
-    alt: "Playful birthday photo corner",
-    category: "Kids Parties",
-  },
-  {
-    id: 13,
+    id: 1,
     src: "/images/wedding1.webp",
     alt: "Wedding reception overview with soft lighting",
     category: "Weddings",
   },
   {
-    id: 14,
+    id: 2,
     src: "/images/wedding2.webp",
     alt: "Wedding ceremony setup with floral details",
     category: "Weddings",
   },
   {
-    id: 15,
+    id: 3,
     src: "/images/wedding3.webp",
     alt: "Wedding tablescape with candles and greenery",
     category: "Weddings",
   },
   {
-    id: 16,
+    id: 4,
     src: "/images/wedding4.webp",
     alt: "Wedding dance floor with uplighting",
     category: "Weddings",
@@ -346,8 +292,8 @@ export default function GalleryPage() {
                     <Image
                       src={item.src}
                       alt={item.alt}
-                      width={1920}
-                      height={1080}
+                      width={1200}
+                      height={900}
                       sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
                       className="gallery-image h-full w-full object-contain transition duration-200 ease-out group-hover:scale-[1.03]"
                     />
@@ -383,8 +329,8 @@ export default function GalleryPage() {
                   <Image
                     src={activeItem.src}
                     alt={activeItem.alt}
-                    width={1920}
-                    height={1080}
+                    width={1200}
+                    height={900}
                     sizes="92vw"
                     className="block h-full w-full object-contain"
                   />

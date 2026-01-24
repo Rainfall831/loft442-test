@@ -3,16 +3,13 @@
 import NextImage from "next/image";
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { Volume2, VolumeX } from "lucide-react";
-import Reveal from "@/components/Reveal";
 
 const POSTER_SRC = "/video-poster.jpg";
 const railImages = [
-  { src: "/images/gallery1.jpg", alt: "Loft 442 lounge vignette" },
-  { src: "/images/gallery2.jpg", alt: "Loft 442 event lighting" },
-  { src: "/images/gallery3.jpg", alt: "Loft 442 dining setup" },
-  { src: "/images/loft-44-image.png", alt: "Loft 442 open floor plan" },
   { src: "/images/wedding1.webp", alt: "Wedding reception at Loft 442" },
   { src: "/images/wedding2.webp", alt: "Wedding ceremony at Loft 442" },
+  { src: "/images/wedding3.webp", alt: "Wedding tablescape at Loft 442" },
+  { src: "/images/wedding4.webp", alt: "Wedding dance floor at Loft 442" },
 ];
 
 const buildRailImages = (offset: number, count = 5) =>
@@ -28,7 +25,7 @@ export default function VideoSection() {
   const sectionRef = useRef<HTMLElement | null>(null);
   const [controlsEnabled, setControlsEnabled] = useState(false);
   const [isMuted, setIsMuted] = useState(true);
-  const [inView, setInView] = useState(false);
+  const [visibilityRatio, setVisibilityRatio] = useState(0);
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
   const [userInitiated, setUserInitiated] = useState(false);
   const [showFallback, setShowFallback] = useState(false);
@@ -71,9 +68,9 @@ export default function VideoSection() {
     const observer = new IntersectionObserver(
       (entries) => {
         const [entry] = entries;
-        setInView(entry.isIntersecting);
+        setVisibilityRatio(entry.intersectionRatio);
       },
-      { threshold: 0.4, rootMargin: "0px 0px -10% 0px" }
+      { threshold: [0, 0.1, 0.95, 1], rootMargin: "0px" }
     );
 
     observer.observe(section);
@@ -84,9 +81,13 @@ export default function VideoSection() {
     const video = videoRef.current;
     if (!video) return;
 
-    if (!inView) {
+    if (visibilityRatio <= 0.1) {
       video.pause();
       setShowFallback(false);
+      return;
+    }
+
+    if (visibilityRatio < 0.95) {
       return;
     }
 
@@ -98,7 +99,7 @@ export default function VideoSection() {
     if (attempt && typeof attempt.catch === "function") {
       attempt.catch(() => setShowFallback(true));
     }
-  }, [inView, prefersReducedMotion, userInitiated]);
+  }, [visibilityRatio, prefersReducedMotion, userInitiated]);
 
   const handleEnableControls = () => {
     setControlsEnabled(true);
@@ -136,17 +137,16 @@ export default function VideoSection() {
       ref={sectionRef}
       className="section-glow section-divider relative isolate border-t border-white/10 py-12 sm:py-16"
     >
-
-      <div className="relative left-1/2 w-screen -translate-x-1/2 px-4 sm:px-6 lg:px-0">
-        <div className="grid items-center lg:grid-cols-[minmax(0,1fr)_400px_minmax(0,1fr)] lg:items-stretch">
-          <div className="hidden w-full lg:flex lg:self-stretch lg:py-1 lg:pr-6">
+      <div className="relative z-10 left-1/2 w-screen -translate-x-1/2">
+        <div className="grid items-center px-4 sm:px-6 lg:px-0 lg:grid-cols-[minmax(0,1fr)_400px_minmax(0,1fr)] lg:items-stretch">
+          <div className="hidden w-full lg:flex lg:self-stretch lg:py-1 lg:pr-0">
             {(() => {
               const images = buildRailImages(leftRail.offset, railImages.length);
               const loopImages = [...images, ...images];
 
               return (
                 <div
-                  className="video-rail video-rail--left video-rail--scale-left video-rail--reverse group relative h-full w-full overflow-hidden lg:-ml-6 xl:-ml-12 2xl:-ml-1"
+                  className="video-rail video-rail--left video-rail--scale-left video-rail--reverse group relative h-full w-full overflow-hidden lg:-ml-6 xl:-ml-12 2xl:-ml-5"
                 >
                   <div
                     className="video-rail__track flex h-full w-max items-center gap-2"
@@ -237,6 +237,7 @@ export default function VideoSection() {
                 <div
                   className="video-rail video-rail--right video-rail--scale-right video-rail--reverse group relative h-full w-full overflow-hidden lg:-mr-10 xl:-mr-16 2xl:-mr-20"
                 >
+                  <div className="pointer-events-none absolute inset-y-0 left-0 z-20 w-16 bg-gradient-to-r from-[#070708] to-transparent" />
                   <div
                     className="video-rail__track flex h-full w-max items-center gap-2"
                     style={{ "--rail-duration": "26s" } as CSSProperties}

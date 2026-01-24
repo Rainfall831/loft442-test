@@ -1,6 +1,5 @@
 export const runtime = "nodejs";
 
-import { NextResponse } from "next/server";
 import { Resend } from "resend";
 
 const datePattern = /^\d{4}-\d{2}-\d{2}$/;
@@ -30,18 +29,24 @@ const formatDate = (date: string) => {
   });
 };
 
-export async function POST(request: Request) {
+const getClientIp = (request: Request) => {
   const forwardedFor = request.headers.get("x-forwarded-for") ?? "";
-  const ip =
+  return (
     forwardedFor.split(",").map((entry) => entry.trim())[0] ||
     request.headers.get("x-real-ip") ||
-    "unknown";
+    "unknown"
+  );
+};
+
+export async function POST(request: Request) {
+  const ip = getClientIp(request);
   const now = Date.now();
   const existing = rateLimitStore.get(ip);
+
   if (!existing || existing.resetAt <= now) {
     rateLimitStore.set(ip, { count: 1, resetAt: now + RATE_LIMIT_WINDOW_MS });
   } else if (existing.count >= RATE_LIMIT_MAX) {
-    return NextResponse.json(
+    return Response.json(
       { ok: false, error: "Too many requests. Please try again later." },
       { status: 429 }
     );
@@ -49,17 +54,19 @@ export async function POST(request: Request) {
     existing.count += 1;
   }
 
-  const payload = (await request.json().catch(() => null)) as RequestPayload | null;
+  const payload = (await request.json().catch(() => null)) as
+    | RequestPayload
+    | null;
 
   if (!payload) {
-    return NextResponse.json(
+    return Response.json(
       { ok: false, error: "Invalid JSON payload." },
       { status: 400 }
     );
   }
 
   if (payload.website) {
-    return NextResponse.json({ ok: true });
+    return Response.json({ ok: true });
   }
 
   const missing = [
@@ -67,11 +74,12 @@ export async function POST(request: Request) {
     ["firstName", payload.firstName],
     ["lastName", payload.lastName],
     ["partyType", payload.partyType],
+    ["phone", payload.phone],
     ["email", payload.email],
   ].filter(([, value]) => !value || !String(value).trim());
 
   if (missing.length > 0) {
-    return NextResponse.json(
+    return Response.json(
       {
         ok: false,
         error: "Missing required fields.",
@@ -82,35 +90,31 @@ export async function POST(request: Request) {
   }
 
   if (!datePattern.test(String(payload.date))) {
-    return NextResponse.json(
+    return Response.json(
       { ok: false, error: "Invalid date format." },
       { status: 400 }
     );
   }
 
   if (!emailPattern.test(String(payload.email))) {
-    return NextResponse.json(
+    return Response.json(
       { ok: false, error: "Invalid email address." },
       { status: 400 }
     );
   }
 
-  const { RESEND_API_KEY, SMTP_FROM, LEADS_TO_EMAIL } = process.env;
+  const { RESEND_API_KEY, LEADS_TO_EMAIL, SMTP_FROM } = process.env;
 
   if (!RESEND_API_KEY || !LEADS_TO_EMAIL) {
-    return NextResponse.json(
+    return Response.json(
       { ok: false, error: "Email service not configured." },
       { status: 500 }
     );
   }
 
-  const TO = LEADS_TO_EMAIL;
   const resend = new Resend(RESEND_API_KEY);
-
   const dateLabel = formatDate(String(payload.date));
-  const messageText = payload.message?.trim()
-    ? payload.message.trim()
-    : "None";
+  const messageText = payload.message?.trim() ? payload.message.trim() : "None";
 
   const emailText = `New Event Request – Loft 442
 
@@ -126,7 +130,7 @@ ${messageText}
 
   const result = await resend.emails.send({
     from: SMTP_FROM ?? "Loft 442 <onboarding@resend.dev>",
-    to: TO,
+    to: LEADS_TO_EMAIL,
     replyTo: payload.email,
     subject: `New Event Request – ${payload.partyType}`,
     text: emailText,

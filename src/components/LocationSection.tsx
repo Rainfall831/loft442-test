@@ -21,11 +21,9 @@ export default function LocationSection() {
                 <p className="text-xs uppercase tracking-[0.4em] text-white/60">
                   LOCATION
                 </p>
-                <div className="flex flex-col gap-0">
-                  <p className="text-lg leading-relaxed text-white/85">
-                    Loft 442
-                  </p>
-                  <p className="text-lg leading-relaxed text-white/85">
+                <div className="flex flex-col gap-1 text-lg leading-relaxed text-white/85">
+                  <p>Loft 442</p>
+                  <p>
                     784 Elmont Road, Elmont,
                     <br />
                     NY 11003

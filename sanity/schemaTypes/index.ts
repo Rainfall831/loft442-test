@@ -1,9 +1,9 @@
-import {type SchemaTypeDefinition} from 'sanity'
+import { type SchemaTypeDefinition } from "sanity";
 
-import availability from './availability'
+import availability from "./availability";
 
-export const schemaTypes: SchemaTypeDefinition[] = [availability]
+export const schemaTypes: SchemaTypeDefinition[] = [availability];
 
-export const schema: {types: SchemaTypeDefinition[]} = {
+export const schema: { types: SchemaTypeDefinition[] } = {
   types: schemaTypes,
-}
+};

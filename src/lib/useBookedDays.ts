@@ -1,29 +1,40 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 
-const toMonthKey = (d: Date) =>
-  `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+const toMonthParam = (date: Date) =>
+  `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
 
 export function useBookedDays(monthAnchor: Date) {
-  const [set, setSet] = useState<Set<string>>(new Set());
-  const month = useMemo(() => toMonthKey(monthAnchor), [monthAnchor]);
+  const [bookedDays, setBookedDays] = useState<Set<string>>(new Set());
 
   useEffect(() => {
-    let cancelled = false;
+    let isActive = true;
 
-    fetch(`/api/booked-dates?month=${month}`, { cache: "no-store" })
-      .then((r) => r.json())
-      .then((d) => {
-        if (!cancelled) {
-          setSet(new Set(d.bookedDays ?? []));
+    const load = async () => {
+      try {
+        const month = toMonthParam(monthAnchor);
+        const response = await fetch(`/api/booked-dates?month=${month}`);
+        const data = await response.json().catch(() => null);
+        const dates = Array.isArray(data?.bookedDays) ? data.bookedDays : [];
+
+        if (!isActive) {
+          return;
         }
-      });
+        setBookedDays(new Set(dates.filter(Boolean)));
+      } catch {
+        if (isActive) {
+          setBookedDays(new Set());
+        }
+      }
+    };
+
+    load();
 
     return () => {
-      cancelled = true;
+      isActive = false;
     };
-  }, [month]);
+  }, [monthAnchor]);
 
-  return set;
+  return bookedDays;
 }
