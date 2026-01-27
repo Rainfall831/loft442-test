@@ -1109,7 +1109,7 @@ html::after {
 
 @media (max-width: 640px) {
   .video-rail {
-    --rail-duration: 25s;
+    --rail-duration: 35s;
   }
 }
 

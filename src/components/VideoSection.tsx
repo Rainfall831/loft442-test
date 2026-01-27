@@ -1,9 +1,97 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import NextImage from "next/image";
 import styles from "./Hero.module.css";
 import { galleryItems } from "./GalleryPage";
+
+export function SafariDebugHUD({ selector = "img" }: { selector?: string }) {
+  const [info, setInfo] = useState<Record<string, string | number | boolean>>({});
+  const [lastTouch, setLastTouch] = useState(Date.now());
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    const onTouch = () => setLastTouch(Date.now());
+    window.addEventListener("touchstart", onTouch, { passive: true });
+    window.addEventListener("scroll", onTouch, { passive: true });
+    return () => {
+      window.removeEventListener("touchstart", onTouch);
+      window.removeEventListener("scroll", onTouch);
+    };
+  }, []);
+
+  useEffect(() => {
+    const tick = () => {
+      const imgs = Array.from(document.querySelectorAll(selector)) as HTMLImageElement[];
+      const mounted = imgs.length;
+
+      const visible = imgs.filter(img => {
+        const r = img.getBoundingClientRect();
+        return r.width > 0 && r.height > 0 && r.bottom > 0 && r.top < window.innerHeight;
+      });
+
+      const blankVisible = visible.filter(img => img.complete && img.naturalWidth === 0);
+      const notCompleteVisible = visible.filter(img => !img.complete);
+
+      setInfo({
+        time: new Date().toLocaleTimeString(),
+        hidden: document.hidden,
+        idleSec: Math.floor((Date.now() - lastTouch) / 1000),
+        mounted,
+        visible: visible.length,
+        blankVisible: blankVisible.length,
+        notCompleteVisible: notCompleteVisible.length,
+        vw: window.innerWidth,
+        vh: window.innerHeight,
+        dpr: window.devicePixelRatio
+      });
+    };
+
+    tick();
+    const id = window.setInterval(tick, 500);
+    return () => window.clearInterval(id);
+  }, [selector, lastTouch]);
+
+  if (!mounted) return null;
+
+  return createPortal(
+    <div
+      style={{
+        position: "fixed",
+        top: 8,
+        right: 8,
+        zIndex: 999999,
+        background: "rgba(0,0,0,0.65)",
+        color: "white",
+        padding: "10px 12px",
+        fontSize: 12,
+        borderRadius: 10,
+        maxWidth: 220,
+        pointerEvents: "none",
+        fontFamily: "system-ui, -apple-system, Segoe UI, Roboto, Arial"
+      }}
+    >
+      <div>
+        <b>HUD</b> {info.time}
+      </div>
+      <div>hidden: {String(info.hidden)}</div>
+      <div>idle: {info.idleSec}s</div>
+      <div>imgs mounted: {info.mounted}</div>
+      <div>imgs visible: {info.visible}</div>
+      <div>blank visible: {info.blankVisible}</div>
+      <div>not complete: {info.notCompleteVisible}</div>
+      <div>
+        {info.vw}×{info.vh} dpr:{info.dpr}
+      </div>
+    </div>,
+    document.body
+  );
+}
 
 const railImages = galleryItems.map(item => ({
   src: item.src,
@@ -155,6 +243,7 @@ export default function VideoSection() {
 
   return (
     <section id="video-section" className="pt-12 pb-10 sm:pt-16 sm:pb-14">
+      <SafariDebugHUD selector="#video-section img" />
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="mb-4 sm:mb-6 text-center sm:text-left">
           <h3 className="text-lg font-semibold text-white sm:text-xl uppercase" style={{ fontFamily: "var(--font-heading)" }}>
