@@ -42,6 +42,9 @@ const useMediaQuery = (query: string, defaultValue = false) => {
 };
 
 export default function VideoSection() {
+  const isVideoSectionEnabled = process.env.NEXT_PUBLIC_VIDEO_SECTION_ENABLED === "true";
+  if (!isVideoSectionEnabled) return null;
+
   const isMobile = useMediaQuery("(max-width: 640px)");
   const [isSafari, setIsSafari] = useState(false);
   const [loadedSrcs, setLoadedSrcs] = useState<Record<string, boolean>>({});
