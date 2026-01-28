@@ -1,10 +1,7 @@
 export const runtime = "nodejs";
 
 import { Resend } from "resend";
-<<<<<<< HEAD
-=======
 import EventRequestNotification from "@/emails/EventRequestNotification";
->>>>>>> 1075a9d (Initial commit)
 
 const datePattern = /^\d{4}-\d{2}-\d{2}$/;
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -76,18 +73,12 @@ export async function POST(request: Request) {
     console.log("[send-request] Payload keys:", payload ? Object.keys(payload) : "null");
   } catch (parseError) {
     console.error("[send-request] JSON parse error:", parseError);
-    return Response.json(
-      { ok: false, error: "Invalid JSON payload." },
-      { status: 400 }
-    );
+    return Response.json({ ok: false, error: "Invalid JSON payload." }, { status: 400 });
   }
 
   if (!payload) {
     console.error("[send-request] Payload is null after parsing");
-    return Response.json(
-      { ok: false, error: "Invalid JSON payload." },
-      { status: 400 }
-    );
+    return Response.json({ ok: false, error: "Invalid JSON payload." }, { status: 400 });
   }
 
   if (payload.website) {
@@ -125,18 +116,12 @@ export async function POST(request: Request) {
 
   if (!datePattern.test(String(payload.date))) {
     console.error("[send-request] Invalid date format:", payload.date);
-    return Response.json(
-      { ok: false, error: "Invalid date format." },
-      { status: 400 }
-    );
+    return Response.json({ ok: false, error: "Invalid date format." }, { status: 400 });
   }
 
   if (!emailPattern.test(String(payload.email))) {
     console.error("[send-request] Invalid email format:", payload.email);
-    return Response.json(
-      { ok: false, error: "Invalid email address." },
-      { status: 400 }
-    );
+    return Response.json({ ok: false, error: "Invalid email address." }, { status: 400 });
   }
 
   console.log("[send-request] Validation passed, checking environment variables...");
@@ -156,22 +141,16 @@ export async function POST(request: Request) {
     console.error("[send-request] FATAL: Missing required environment variables!");
     console.error("[send-request] RESEND_API_KEY:", RESEND_API_KEY ? "SET" : "MISSING");
     console.error("[send-request] LEADS_TO_EMAIL:", LEADS_TO_EMAIL ? "SET" : "MISSING");
-    return Response.json(
-      { ok: false, error: "Email service not configured." },
-      { status: 500 }
-    );
+    return Response.json({ ok: false, error: "Email service not configured." }, { status: 500 });
   }
 
   console.log("[send-request] Initializing Resend client...");
   const resend = new Resend(RESEND_API_KEY);
+
   const dateLabel = formatDate(String(payload.date));
   const messageText = payload.message?.trim() ? payload.message.trim() : "None";
 
-<<<<<<< HEAD
   const emailText = `New Event Request – Loft 442
-=======
-  const emailText = `New Event Request - Loft 442
->>>>>>> 1075a9d (Initial commit)
 
 Name: ${payload.firstName} ${payload.lastName}
 Email: ${payload.email}
@@ -196,8 +175,6 @@ ${messageText}
       to: LEADS_TO_EMAIL,
       replyTo: payload.email,
       subject: `New Event Request – ${payload.partyType}`,
-<<<<<<< HEAD
-=======
       react: EventRequestNotification({
         firstName: String(payload.firstName),
         lastName: String(payload.lastName),
@@ -207,30 +184,27 @@ ${messageText}
         dateLabel,
         messageText,
       }),
->>>>>>> 1075a9d (Initial commit)
-      text: emailText,
+      text: emailText, // fallback for clients that can't render HTML
     });
 
     console.log("[send-request] Resend API response received");
     console.log("[send-request] Result:", JSON.stringify(result, null, 2));
 
-    if (result.error) {
+    if ((result as any).error) {
+      const err = (result as any).error;
       console.error("[send-request] Resend API returned error:");
-      console.error("[send-request] Error name:", result.error.name);
-      console.error("[send-request] Error message:", result.error.message);
-      return Response.json(
-        { ok: false, error: result.error.message },
-        { status: 500 }
-      );
+      console.error("[send-request] Error name:", err?.name);
+      console.error("[send-request] Error message:", err?.message);
+      return Response.json({ ok: false, error: err?.message ?? "Email send failed" }, { status: 500 });
     }
 
     const duration = Date.now() - startTime;
     console.log("[send-request] ✅ Email sent successfully!");
-    console.log("[send-request] Email ID:", result.data?.id);
+    console.log("[send-request] Email ID:", (result as any).data?.id);
     console.log("[send-request] Total duration:", duration, "ms");
     console.log("[send-request] ========== REQUEST COMPLETE ==========");
 
-    return Response.json({ ok: true, id: result.data?.id });
+    return Response.json({ ok: true, id: (result as any).data?.id });
   } catch (sendError) {
     console.error("[send-request] ❌ Exception while sending email:");
     console.error("[send-request] Error type:", typeof sendError);
