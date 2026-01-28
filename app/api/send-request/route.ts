@@ -1,6 +1,10 @@
 export const runtime = "nodejs";
 
 import { Resend } from "resend";
+<<<<<<< HEAD
+=======
+import EventRequestNotification from "@/emails/EventRequestNotification";
+>>>>>>> 1075a9d (Initial commit)
 
 const datePattern = /^\d{4}-\d{2}-\d{2}$/;
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -163,7 +167,11 @@ export async function POST(request: Request) {
   const dateLabel = formatDate(String(payload.date));
   const messageText = payload.message?.trim() ? payload.message.trim() : "None";
 
+<<<<<<< HEAD
   const emailText = `New Event Request – Loft 442
+=======
+  const emailText = `New Event Request - Loft 442
+>>>>>>> 1075a9d (Initial commit)
 
 Name: ${payload.firstName} ${payload.lastName}
 Email: ${payload.email}
@@ -188,6 +196,18 @@ ${messageText}
       to: LEADS_TO_EMAIL,
       replyTo: payload.email,
       subject: `New Event Request – ${payload.partyType}`,
+<<<<<<< HEAD
+=======
+      react: EventRequestNotification({
+        firstName: String(payload.firstName),
+        lastName: String(payload.lastName),
+        email: String(payload.email),
+        phone: String(payload.phone ?? ""),
+        partyType: String(payload.partyType),
+        dateLabel,
+        messageText,
+      }),
+>>>>>>> 1075a9d (Initial commit)
       text: emailText,
     });
 
