@@ -104,11 +104,12 @@ const desktopPreloadWidth = 384;
 
 const buildNextImageUrl = (src: string, width: number, quality = railQuality) => {
   if (!src) return "";
+  const base = typeof window !== "undefined" ? window.location.origin : "";
   const params = new URLSearchParams();
   params.set("url", src);
   params.set("w", String(width));
   params.set("q", String(quality));
-  return `/_next/image?${params.toString()}`;
+  return `${base}/_next/image?${params.toString()}`;
 };
 
 const buildRailImages = (offset: number, count = 5) =>
@@ -144,8 +145,10 @@ export default function VideoSection() {
   const isMobile = useMediaQuery("(max-width: 640px)");
   const [isSafari, setIsSafari] = useState(false);
   const [loadedSrcs, setLoadedSrcs] = useState<Record<string, boolean>>({});
+  const [shouldPreload, setShouldPreload] = useState(false);
   const [repaintKey, setRepaintKey] = useState(0);
   const railRef = useRef<HTMLDivElement | null>(null);
+  const sectionRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
     const detected =
@@ -154,6 +157,30 @@ export default function VideoSection() {
       !/chrome|android|crios|fxios|edgios/i.test(navigator.userAgent);
     setIsSafari(detected);
   }, []);
+
+  useEffect(() => {
+    if (!isSafari) return;
+    const el = sectionRef.current;
+    if (!el) return;
+
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (entries.some(e => e.isIntersecting)) {
+          setShouldPreload(true);
+          io.disconnect();
+        }
+      },
+      {
+        root: null,
+        // Start preloading while still offscreen
+        rootMargin: "1000px 0px",
+        threshold: 0.01,
+      }
+    );
+
+    io.observe(el);
+    return () => io.disconnect();
+  }, [isSafari]);
 
   useEffect(() => {
     const id = setInterval(() => {
@@ -181,15 +208,25 @@ export default function VideoSection() {
   const desktopLoop = useMemo(() => [...desktopImages, ...desktopImages], [desktopImages]);
 
   const preloadUrls = useMemo(() => {
+    if (!isSafari) return [];
+    if (!shouldPreload) return [];
+
     const eagerCount = 2;
     const warmCount = 4;
+
     const targets = isMobile
       ? mobileImages.slice(eagerCount, eagerCount + warmCount)
       : desktopImages.slice(eagerCount, eagerCount + warmCount);
-    const width = isMobile ? mobilePreloadWidth : desktopPreloadWidth;
-    const optimized = targets.map(item => buildNextImageUrl(item.src, width));
-    return Array.from(new Set(optimized)).filter(Boolean);
-  }, [isMobile, mobileImages, desktopImages]);
+
+    // DPR-safe widths: preload 2 likely candidates
+    const widths = isMobile ? [256, 512] : [384, 640];
+
+    const urls = targets.flatMap(item =>
+      widths.map(w => buildNextImageUrl(item.src, w))
+    );
+
+    return Array.from(new Set(urls)).filter(Boolean);
+  }, [isSafari, shouldPreload, isMobile, mobileImages, desktopImages]);
 
   useEffect(() => {
     if (!isSafari) return;
@@ -272,7 +309,11 @@ export default function VideoSection() {
   };
 
   return (
-    <section id="video-section" className="pt-12 pb-10 sm:pt-16 sm:pb-14">
+    <section
+      id="video-section"
+      ref={(el) => { sectionRef.current = el; }}
+      className="pt-12 pb-10 sm:pt-16 sm:pb-14"
+    >
       <SafariDebugHUD selector="#video-section img" />
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="mb-4 sm:mb-6 text-center sm:text-left">
