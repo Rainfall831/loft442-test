@@ -956,47 +956,14 @@ html::after {
   isolation: isolate;
   display: flex;
   align-items: center;
-  -webkit-mask-size: 100% 100%;
-  mask-size: 100% 100%;
-  -webkit-mask-repeat: no-repeat;
-  mask-repeat: no-repeat;
 }
 
 .video-rail--left {
   justify-content: flex-start;
-  -webkit-mask-image: linear-gradient(to right,
-      transparent 0%,
-      black 22%,
-      black 78%,
-      transparent 100%);
-  mask-image: linear-gradient(to right,
-      transparent 0%,
-      black 22%,
-      black 78%,
-      transparent 100%);
 }
 
 .video-rail--right {
   justify-content: flex-end;
-  -webkit-mask-image: linear-gradient(to right,
-      transparent 0%,
-      black 22%,
-      black 78%,
-      transparent 100%);
-  mask-image: linear-gradient(to right,
-      transparent 0%,
-      black 22%,
-      black 78%,
-      transparent 100%);
-}
-
-@supports (-webkit-touch-callout: none) {
-
-  .video-rail--left,
-  .video-rail--right {
-    -webkit-mask-image: none;
-    mask-image: none;
-  }
 }
 
 .video-rail--scale-left {
@@ -1017,19 +984,29 @@ html::after {
   animation-timing-function: linear;
   animation-iteration-count: infinite;
   animation-play-state: running;
+
   will-change: transform;
   transform: translate3d(0, 0, 0);
   -webkit-transform: translate3d(0, 0, 0);
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
-  perspective: 1000px;
-  -webkit-perspective: 1000px;
-  contain: paint;
+
+  /* IMPORTANT: avoid paint containment in Safari */
+  contain: layout style; /* or remove contain entirely */
+}
+
+.video-rail__track {
+  will-change: transform;
+  transform: translate3d(0, 0, 0);
+  -webkit-transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
 }
 
 .video-rail__item {
   flex: 0 0 auto;
-  contain: layout paint;
+  /* IMPORTANT: avoid paint containment in Safari */
+  contain: layout style;
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
 }
@@ -1386,8 +1363,8 @@ html::after {
 
 /* iOS Safari image rendering optimization */
 img {
-  -webkit-transform: translateZ(0);
   image-rendering: -webkit-optimize-contrast;
+  /* REMOVE translateZ(0) globally */
 }
 
 /* Prevent iOS tap highlight */

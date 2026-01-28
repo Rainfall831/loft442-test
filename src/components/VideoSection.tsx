@@ -142,8 +142,9 @@ export default function VideoSection() {
     setIsSafari(detected);
   }, []);
 
-  const mobileCount = Math.min(railImages.length, 7);
-  const desktopCount = Math.min(railImages.length, isMobile ? 8 : 10);
+  // Keep rails short to limit DOM count and WebKit memory pressure.
+  const mobileCount = Math.min(railImages.length, 6);
+  const desktopCount = Math.min(railImages.length, 10);
 
   const mobileImages = useMemo(
     () => buildRailImages(unifiedRail.offset, mobileCount),
@@ -158,14 +159,19 @@ export default function VideoSection() {
   const desktopLoop = useMemo(() => [...desktopImages, ...desktopImages], [desktopImages]);
 
   const preloadSources = useMemo(() => {
-    const targets = isMobile ? mobileImages.slice(0, 3) : desktopImages.slice(0, 2);
-    return targets.map(item => item.src);
+    const eagerCount = 2;
+    const warmCount = 4;
+    const targets = isMobile
+      ? mobileImages.slice(eagerCount, eagerCount + warmCount)
+      : desktopImages.slice(eagerCount, eagerCount + warmCount);
+    return Array.from(new Set(targets.map(item => item.src))).filter(Boolean);
   }, [isMobile, mobileImages, desktopImages]);
 
   useEffect(() => {
     if (!isSafari) return;
     if (typeof document === "undefined") return;
 
+    // Safari/WebKit: warm-decode the next few images to avoid blank tiles.
     preloadSources.forEach(src => {
       if (!src) return;
       const existing = document.querySelector(`link[rel="preload"][href="${src}"]`);
