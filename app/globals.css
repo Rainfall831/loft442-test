@@ -976,6 +976,15 @@ html::after {
   transform-origin: left center;
 }
 
+.video-rail__motion,
+.video-rail__track {
+  will-change: transform;
+  transform: translate3d(0, 0, 0);
+  -webkit-transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
 .video-rail__motion {
   display: inline-flex;
   width: max-content;
@@ -985,44 +994,33 @@ html::after {
   animation-iteration-count: infinite;
   animation-play-state: running;
 
-  will-change: transform;
-  transform: translate3d(0, 0, 0);
-  -webkit-transform: translate3d(0, 0, 0);
-  backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
-
-  /* IMPORTANT: avoid paint containment in Safari */
-  contain: layout style; /* or remove contain entirely */
-}
-
-.video-rail__track {
-  will-change: transform;
-  transform: translate3d(0, 0, 0);
-  -webkit-transform: translate3d(0, 0, 0);
-  backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
+  /* REMOVE contain entirely */
+  contain: none;
 }
 
 .video-rail__item {
   flex: 0 0 auto;
-  /* IMPORTANT: avoid paint containment in Safari */
-  contain: layout style;
+  /* REMOVE contain entirely */
+  contain: none;
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
 }
 
-.video-rail__image {
+.video-rail__item > span img,
+.video-rail__item img {
   opacity: 0;
   transition: opacity 200ms ease;
 }
 
-.video-rail__image.is-loaded {
+.video-rail__item.is-loaded > span img,
+.video-rail__item.is-loaded img {
   opacity: 1;
 }
 
 
 @media (prefers-reduced-motion: reduce) {
-  .video-rail__image {
+  .video-rail__item > span img,
+  .video-rail__item img {
     transition: none;
     opacity: 1;
   }
@@ -1362,11 +1360,6 @@ html::after {
 }
 
 /* iOS Safari image rendering optimization */
-img {
-  image-rendering: -webkit-optimize-contrast;
-  /* REMOVE translateZ(0) globally */
-}
-
 /* Prevent iOS tap highlight */
 a,
 button,

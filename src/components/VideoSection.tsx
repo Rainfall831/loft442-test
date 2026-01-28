@@ -1,97 +1,9 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { createPortal } from "react-dom";
 import NextImage from "next/image";
 import styles from "./Hero.module.css";
 import { galleryItems } from "./GalleryPage";
-
-export function SafariDebugHUD({ selector = "img" }: { selector?: string }) {
-  const [info, setInfo] = useState<Record<string, string | number | boolean>>({});
-  const [lastTouch, setLastTouch] = useState(Date.now());
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  useEffect(() => {
-    const onTouch = () => setLastTouch(Date.now());
-    window.addEventListener("touchstart", onTouch, { passive: true });
-    window.addEventListener("scroll", onTouch, { passive: true });
-    return () => {
-      window.removeEventListener("touchstart", onTouch);
-      window.removeEventListener("scroll", onTouch);
-    };
-  }, []);
-
-  useEffect(() => {
-    const tick = () => {
-      const imgs = Array.from(document.querySelectorAll(selector)) as HTMLImageElement[];
-      const mounted = imgs.length;
-
-      const visible = imgs.filter(img => {
-        const r = img.getBoundingClientRect();
-        return r.width > 0 && r.height > 0 && r.bottom > 0 && r.top < window.innerHeight;
-      });
-
-      const blankVisible = visible.filter(img => img.complete && img.naturalWidth === 0);
-      const notCompleteVisible = visible.filter(img => !img.complete);
-
-      setInfo({
-        time: new Date().toLocaleTimeString(),
-        hidden: document.hidden,
-        idleSec: Math.floor((Date.now() - lastTouch) / 1000),
-        mounted,
-        visible: visible.length,
-        blankVisible: blankVisible.length,
-        notCompleteVisible: notCompleteVisible.length,
-        vw: window.innerWidth,
-        vh: window.innerHeight,
-        dpr: window.devicePixelRatio
-      });
-    };
-
-    tick();
-    const id = window.setInterval(tick, 500);
-    return () => window.clearInterval(id);
-  }, [selector, lastTouch]);
-
-  if (!mounted) return null;
-
-  return createPortal(
-    <div
-      style={{
-        position: "fixed",
-        top: 8,
-        right: 8,
-        zIndex: 999999,
-        background: "rgba(0,0,0,0.65)",
-        color: "white",
-        padding: "10px 12px",
-        fontSize: 12,
-        borderRadius: 10,
-        maxWidth: 220,
-        pointerEvents: "none",
-        fontFamily: "system-ui, -apple-system, Segoe UI, Roboto, Arial"
-      }}
-    >
-      <div>
-        <b>HUD</b> {info.time}
-      </div>
-      <div>hidden: {String(info.hidden)}</div>
-      <div>idle: {info.idleSec}s</div>
-      <div>imgs mounted: {info.mounted}</div>
-      <div>imgs visible: {info.visible}</div>
-      <div>blank visible: {info.blankVisible}</div>
-      <div>not complete: {info.notCompleteVisible}</div>
-      <div>
-        {info.vw}×{info.vh} dpr:{info.dpr}
-      </div>
-    </div>,
-    document.body
-  );
-}
 
 const railImages = galleryItems.map(item => ({
   src: item.src,
@@ -99,18 +11,6 @@ const railImages = galleryItems.map(item => ({
 }));
 
 const railQuality = 70;
-const mobilePreloadWidth = 256;
-const desktopPreloadWidth = 384;
-
-const buildNextImageUrl = (src: string, width: number, quality = railQuality) => {
-  if (!src) return "";
-  const base = typeof window !== "undefined" ? window.location.origin : "";
-  const params = new URLSearchParams();
-  params.set("url", src);
-  params.set("w", String(width));
-  params.set("q", String(quality));
-  return `${base}/_next/image?${params.toString()}`;
-};
 
 const buildRailImages = (offset: number, count = 5) =>
   Array.from({ length: count }, (_, index) => {
@@ -145,10 +45,8 @@ export default function VideoSection() {
   const isMobile = useMediaQuery("(max-width: 640px)");
   const [isSafari, setIsSafari] = useState(false);
   const [loadedSrcs, setLoadedSrcs] = useState<Record<string, boolean>>({});
-  const [shouldPreload, setShouldPreload] = useState(false);
   const [repaintKey, setRepaintKey] = useState(0);
   const railRef = useRef<HTMLDivElement | null>(null);
-  const sectionRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
     const detected =
@@ -156,39 +54,6 @@ export default function VideoSection() {
       /safari/i.test(navigator.userAgent) &&
       !/chrome|android|crios|fxios|edgios/i.test(navigator.userAgent);
     setIsSafari(detected);
-  }, []);
-
-  useEffect(() => {
-    if (!isSafari) return;
-    const el = sectionRef.current;
-    if (!el) return;
-
-    const io = new IntersectionObserver(
-      (entries) => {
-        if (entries.some(e => e.isIntersecting)) {
-          setShouldPreload(true);
-          io.disconnect();
-        }
-      },
-      {
-        root: null,
-        // Start preloading while still offscreen
-        rootMargin: "1000px 0px",
-        threshold: 0.01,
-      }
-    );
-
-    io.observe(el);
-    return () => io.disconnect();
-  }, [isSafari]);
-
-  useEffect(() => {
-    const id = setInterval(() => {
-      const imgs = Array.from(document.querySelectorAll(".rail img")) as HTMLImageElement[];
-      const bad = imgs.filter(i => i.complete && i.naturalWidth === 0);
-      console.log("imgs:", imgs.length, "bad:", bad.length, "hidden:", document.hidden);
-    }, 1000);
-    return () => clearInterval(id);
   }, []);
 
   // Keep rails short to limit DOM count and WebKit memory pressure.
@@ -206,51 +71,6 @@ export default function VideoSection() {
 
   const mobileLoop = useMemo(() => [...mobileImages, ...mobileImages], [mobileImages]);
   const desktopLoop = useMemo(() => [...desktopImages, ...desktopImages], [desktopImages]);
-
-  const preloadUrls = useMemo(() => {
-    if (!isSafari) return [];
-    if (!shouldPreload) return [];
-
-    const eagerCount = 2;
-    const warmCount = 4;
-
-    const targets = isMobile
-      ? mobileImages.slice(eagerCount, eagerCount + warmCount)
-      : desktopImages.slice(eagerCount, eagerCount + warmCount);
-
-    // DPR-safe widths: preload 2 likely candidates
-    const widths = isMobile ? [256, 512] : [384, 640];
-
-    const urls = targets.flatMap(item =>
-      widths.map(w => buildNextImageUrl(item.src, w))
-    );
-
-    return Array.from(new Set(urls)).filter(Boolean);
-  }, [isSafari, shouldPreload, isMobile, mobileImages, desktopImages]);
-
-  useEffect(() => {
-    if (!isSafari) return;
-    if (typeof document === "undefined") return;
-
-    // Safari/WebKit: preload exact Next/Image URLs to avoid blank tiles.
-    preloadUrls.forEach(url => {
-      if (!url) return;
-      const existing = document.querySelector(`link[rel="preload"][href="${url}"]`);
-      if (!existing) {
-        const link = document.createElement("link");
-        link.rel = "preload";
-        link.as = "image";
-        link.href = url;
-        document.head.appendChild(link);
-      }
-
-      const img = new Image();
-      img.src = url;
-      if (typeof img.decode === "function") {
-        img.decode().catch(() => {});
-      }
-    });
-  }, [isSafari, preloadUrls]);
 
   useEffect(() => {
     if (!isSafari) return;
@@ -311,10 +131,8 @@ export default function VideoSection() {
   return (
     <section
       id="video-section"
-      ref={(el) => { sectionRef.current = el; }}
       className="pt-12 pb-10 sm:pt-16 sm:pb-14"
     >
-      <SafariDebugHUD selector="#video-section img" />
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="mb-4 sm:mb-6 text-center sm:text-left">
           <h3 className="text-lg font-semibold text-white sm:text-xl uppercase" style={{ fontFamily: "var(--font-heading)" }}>
@@ -333,24 +151,25 @@ export default function VideoSection() {
                 {/* Mobile carousel (sm and below) */}
                 <div className="flex sm:hidden overflow-hidden">
                   <div className="rail video-rail video-rail--mobile relative w-full overflow-hidden">
+                    <div className="pointer-events-none absolute inset-y-0 left-0 z-20 w-16 bg-gradient-to-r from-black to-transparent" />
                     <div className="video-rail__motion">
                       <div className="video-rail__track flex w-max items-center gap-3">
                         {mobileLoop.map((image, index) => {
-                          const eager = isSafari || index < 2;
-                          const priority = isSafari ? index < 4 : index < 2;
+                          const eager = index < 2;
+                          const priority = index < 2;
                           return (
                             <div
-                              key={`${unifiedRail.id}-mobile-${image.src}-${index}`}
-                              className="video-rail__item relative h-40 w-60 shrink-0 overflow-hidden bg-white/5"
+                              key={`mobile-${image.src}-${index}`}
+                              className={`video-rail__item relative h-40 w-60 shrink-0 overflow-hidden bg-white/5${loadedSrcs[image.src] ? " is-loaded" : ""}`}
                             >
                               <NextImage
                                 src={image.src}
                                 alt={image.alt}
                                 fill
                                 sizes="(max-width: 640px) 240px, 240px"
-                                className={`video-rail__image object-cover ${loadedSrcs[image.src] ? "is-loaded" : ""}`}
+                                className="video-rail__image object-cover"
                                 quality={railQuality}
-                                decoding="async"
+                                decoding={index < 2 ? "sync" : "async"}
                                 loading={eager ? "eager" : "lazy"}
                                 priority={priority}
                                 onLoadingComplete={() => markLoaded(image.src)}
@@ -360,30 +179,32 @@ export default function VideoSection() {
                         })}
                       </div>
                     </div>
+                    <div className="pointer-events-none absolute inset-y-0 right-0 z-20 w-16 bg-gradient-to-l from-black to-transparent" />
                   </div>
                 </div>
 
                 {/* Desktop carousel (sm and above) */}
                 <div className="hidden sm:flex">
                   <div className="rail video-rail video-rail--unified relative h-full w-full overflow-hidden">
+                    <div className="pointer-events-none absolute inset-y-0 left-0 z-20 w-16 bg-gradient-to-r from-black to-transparent" />
                     <div className="video-rail__motion">
                       <div className="video-rail__track flex h-full w-max items-center gap-2">
                         {desktopLoop.map((image, index) => {
-                          const eager = isSafari || index < 2;
-                          const priority = isSafari ? index < 4 : index < 2;
+                          const eager = index < 2;
+                          const priority = index < 2;
                           return (
                             <div
-                              key={`${unifiedRail.id}-desktop-${image.src}-${index}`}
-                              className="video-rail__item relative h-[200px] w-[280px] shrink-0 overflow-hidden bg-white/5"
+                              key={`desktop-${image.src}-${index}`}
+                              className={`video-rail__item relative h-[200px] w-[280px] shrink-0 overflow-hidden bg-white/5${loadedSrcs[image.src] ? " is-loaded" : ""}`}
                             >
                               <NextImage
                                 src={image.src}
                                 alt={image.alt}
                                 fill
                                 sizes="(max-width: 640px) 240px, 280px"
-                                className={`video-rail__image object-cover ${loadedSrcs[image.src] ? "is-loaded" : ""}`}
+                                className="video-rail__image object-cover"
                                 quality={railQuality}
-                                decoding="async"
+                                decoding={index < 2 ? "sync" : "async"}
                                 loading={eager ? "eager" : "lazy"}
                                 priority={priority}
                                 onLoadingComplete={() => markLoaded(image.src)}
@@ -393,6 +214,7 @@ export default function VideoSection() {
                         })}
                       </div>
                     </div>
+                    <div className="pointer-events-none absolute inset-y-0 right-0 z-20 w-16 bg-gradient-to-l from-black to-transparent" />
                   </div>
                 </div>
               </>
