@@ -11,7 +11,7 @@ export default function Features() {
       >
         <div className="mx-auto max-w-6xl px-4 sm:px-6">
           <Reveal className="grid items-center gap-6 sm:gap-8 md:grid-cols-2 md:gap-10 lg:gap-12">
-            <div className={`relative order-2 h-full md:order-1 ${styles.aboutColumn}`}>
+            <div className={`relative order-2 h-full md:order-1 ${styles.aboutColumn} ${styles.aboutReveal} ${styles.featureText}`}>
               <span className={styles.aboutLine} aria-hidden="true" />
               <div className="inline-block rounded-sm px-4 py-3">
                 <div className="flex flex-col gap-6">
@@ -34,7 +34,7 @@ export default function Features() {
                 </div>
               </div>
             </div>
-            <div className="relative order-1 w-full aspect-[543/358] overflow-hidden rounded-sm border border-white/10 shadow-[0_25px_70px_rgba(0,0,0,0.4)] md:order-2 md:max-w-[543px]">
+            <div className={`relative order-1 w-full aspect-[543/358] overflow-hidden rounded-sm border border-white/10 shadow-[0_25px_70px_rgba(0,0,0,0.4)] md:order-2 md:max-w-[543px] ${styles.featureImage}`}>
               <Image
                 src="/images/ribbon3.webp"
                 alt="Loft 442 event venue interior"
@@ -52,7 +52,7 @@ export default function Features() {
       >
         <div className="mx-auto max-w-6xl px-4 sm:px-6">
           <Reveal className="grid items-center gap-6 sm:gap-8 md:grid-cols-2 md:gap-10 lg:gap-12">
-            <div className="relative order-1 w-full aspect-[543/358] overflow-hidden rounded-sm border border-white/10 shadow-[0_25px_70px_rgba(0,0,0,0.4)] md:max-w-[543px]">
+            <div className={`relative order-1 w-full aspect-[543/358] overflow-hidden rounded-sm border border-white/10 shadow-[0_25px_70px_rgba(0,0,0,0.4)] md:max-w-[543px] ${styles.featureImage}`}>
               <Image
                 src="/images/military-ex.webp"
                 alt="Military tribute"
@@ -61,7 +61,7 @@ export default function Features() {
                 className="reveal reveal-image object-cover"
               />
             </div>
-            <div className={`relative order-2 h-full ${styles.qualityColumn}`}>
+            <div className={`relative order-2 h-full ${styles.qualityColumn} ${styles.tributeReveal} ${styles.featureText}`}>
               <div className="inline-block rounded-sm px-4 py-3">
                 <div className="flex flex-col gap-6">
                   <p className="text-xs uppercase tracking-[0.4em] text-white/60">
@@ -90,7 +90,7 @@ export default function Features() {
       <section className="section-glow section-divider border-t border-white/10 py-16 sm:py-20">
         <div className="mx-auto max-w-6xl px-4 sm:px-6">
           <Reveal className="grid items-center gap-10 md:grid-cols-[1fr_1.05fr] md:items-stretch">
-            <div className={`relative h-full ${styles.qualityColumnLeft}`}>
+            <div className={`relative h-full ${styles.qualityColumnLeft} ${styles.qualityReveal} ${styles.featureText}`}>
               <div className="inline-block rounded-sm px-4 py-3">
                 <div className="flex flex-col gap-6">
                   <p className="text-xs uppercase tracking-[0.4em] text-white/60">
@@ -117,7 +117,7 @@ export default function Features() {
                 aria-hidden="true"
               />
             </div>
-            <div className="relative h-[240px] overflow-hidden rounded-sm border border-white/10 shadow-[0_25px_70px_rgba(0,0,0,0.4)] sm:h-[320px] lg:h-[360px]">
+            <div className={`relative h-[240px] overflow-hidden rounded-sm border border-white/10 shadow-[0_25px_70px_rgba(0,0,0,0.4)] sm:h-[320px] lg:h-[360px] ${styles.featureImage}`}>
               <Image
                 src="/images/quality-promise2.webp"
                 alt="Loft 442 venue detail"

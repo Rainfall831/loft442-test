@@ -224,7 +224,7 @@ export default function EventTypes() {
                       handleTogglePanel(panelKey);
                     }
                   }}
-                  className="about-card-outline group relative flex min-w-0 min-h-12 items-center justify-between gap-3 rounded-sm p-4 text-left shadow-[0_20px_60px_rgba(0,0,0,0.35)] transition"
+                  className="overview-button about-card-outline group relative flex min-w-0 min-h-12 items-center justify-between gap-3 rounded-sm p-4 text-left shadow-[0_20px_60px_rgba(0,0,0,0.35)] transition"
                 >
                   <div className="flex min-w-0 items-center gap-3">
                     <Icon
